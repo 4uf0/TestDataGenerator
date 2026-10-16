@@ -74,6 +74,27 @@ python generate_fit.py --seed 42
 | `--outdir` | `./out` | Ausgabeverzeichnis |
 | `--seed` | zufällig | Seed für reproduzierbare Daten |
 
+## Bestehende Aktivität klonen (neues Datum)
+
+`clone_fit.py` liest eine FIT-Datei, verschiebt alle Zeitstempel auf ein neues Datum und speichert sie als Klon – z. B. um täglich dieselbe Testaktivität in Garmin Connect zu haben:
+
+```bash
+# Einzelner Klon auf ein Zieldatum (Uhrzeit der Vorlage bleibt erhalten):
+python clone_fit.py out/mein_lauf.fit --to-date 2025-07-01
+
+# Klone für 7 aufeinanderfolgende Tage:
+python clone_fit.py out/mein_lauf.fit --to-date 2025-07-01 --days 7
+
+# Ohne --to-date: ab heute
+python clone_fit.py out/mein_lauf.fit --days 7
+```
+
+Alle Werte (Track, Herzfrequenz, Distanz, Session-Summen) bleiben identisch, nur die Daten wandern. Danach wie gewohnt hochladen:
+
+```bash
+python upload_to_garmin.py --use-tokens garmin_tokens.json out/
+```
+
 ## Aufbau der Dateien
 
 Jede Datei enthält `file_id`, `event` (start/stop), `record`-Mesapunkte (Position, HF, Cadence, Distanz, Speed) sowie konsistente `lap`- und `session`-Summen. Der HF-Verlauf folgt einer Aufwärm-/Auslauf-Kurve mit Jitter und bleibt garantiert innerhalb min/max.
