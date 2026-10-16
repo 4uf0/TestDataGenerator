@@ -38,7 +38,11 @@ def load_client(args: argparse.Namespace) -> Garmin:
         email = input("Garmin E-Mail: ")
     if not password:
         password = getpass.getpass("Garmin Passwort: ")
-    client = Garmin(email, password)
+
+    def prompt_mfa() -> str:
+        return input("MFA-Code (aus Authenticator-App/E-Mail): ")
+
+    client = Garmin(email, password, prompt_mfa=prompt_mfa)
     client.login()
     if args.save_tokens:
         oauth1 = client.oauth1
