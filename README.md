@@ -62,4 +62,11 @@ python generate_fit.py --seed 42
 
 Jede Datei enthält `file_id`, `event` (start/stop), `record`-Mesapunkte (Position, HF, Cadence, Distanz, Speed) sowie konsistente `lap`- und `session`-Summen. Der HF-Verlauf folgt einer Aufwärm-/Auslauf-Kurve mit Jitter und bleibt garantiert innerhalb min/max.
 
-Erzeugte Dateien können direkt über garminconnect.com ("Activity Import") oder Garmin Express hochgeladen werden.
+Erzeugte Dateien können direkt über garminconnect.com ("Activity Import"), Garmin Express oder per Skript hochgeladen werden:
+
+```bash
+pip install -r requirements.txt
+GARMIN_EMAIL=... GARMIN_PASSWORD=... python upload_to_garmin.py out/
+```
+
+Details siehe `upload_to_garmin.py --help` (u. a. Token-basierte Anmeldung für wiederholte Uploads).

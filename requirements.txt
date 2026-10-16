@@ -1,1 +1,2 @@
 fit-tool>=0.2.5
+garminconnect>=0.2.25
