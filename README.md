@@ -11,6 +11,13 @@ Einmalig Umgebung einrichten (legt `.venv` an und installiert alles):
 source .venv/bin/activate
 ```
 
+Windows (PowerShell):
+
+```powershell
+.\setup.ps1
+.venv\Scripts\Activate.ps1
+```
+
 Alternativ minimal per pip:
 
 ```bash
