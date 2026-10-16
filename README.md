@@ -1,3 +1,65 @@
 # TestDataGenerator
 
-Werkzeuge zum Erzeugen von Testdaten (u. a. Garmin-FIT-Aktivitäten).
+Erzeugt realistische FIT-Aktivitätsdateien (Garmin-kompatibel), z. B. um Software zu testen, die Aktivitäten von Garmin herunterlädt.
+
+## Installation
+
+```bash
+pip install -r requirements.txt
+```
+
+## Verwendung
+
+Standard: 40 min Lauf, Start gestern, Ausgabe in `./out`:
+
+```bash
+python generate_fit.py
+```
+
+Dauer und Sportart anpassen:
+
+```bash
+python generate_fit.py --duration 35 --sport cycling
+```
+
+Herzfrequenz/Cadence mit min/max und Jitter steuern:
+
+```bash
+python generate_fit.py --hr-min 110 --hr-max 165 --hr-jitter 4 \
+                       --cad-min 155 --cad-max 180 --cad-jitter 3
+```
+
+Mehrere Aktivitäten mit festem Startzeitpunkt und Abstand:
+
+```bash
+python generate_fit.py --count 3 --start "2025-06-01T09:15:00" --spacing-min 600
+```
+
+Reproduzierbare Dateien (gleicher Seed = gleiche Daten):
+
+```bash
+python generate_fit.py --seed 42
+```
+
+## Parameter
+
+| Parameter | Default | Beschreibung |
+|---|---|---|
+| `--duration` | 40 | Dauer in Minuten |
+| `--sport` | `running` | `running`, `cycling` oder `hiking` |
+| `--start` | gestern | Startzeit `YYYY-MM-DDTHH:MM:SS` |
+| `--count` | 1 | Anzahl Aktivitäten |
+| `--spacing-min` | 120 | Abstand zwischen Aktivitäten (Minuten) |
+| `--hr-min` / `--hr-max` | sportabhängig | Herzfrequenz-Bereich |
+| `--hr-jitter` | 3 | HF-Jitter (Gauß, Standardabweichung) |
+| `--cad-min` / `--cad-max` | sportabhängig | Cadence-Bereich |
+| `--cad-jitter` | 2.5 | Cadence-Jitter (Gauß, Standardabweichung) |
+| `--record-interval` | 5 | Sekunden zwischen FIT-Records |
+| `--outdir` | `./out` | Ausgabeverzeichnis |
+| `--seed` | zufällig | Seed für reproduzierbare Daten |
+
+## Aufbau der Dateien
+
+Jede Datei enthält `file_id`, `event` (start/stop), `record`-Mesapunkte (Position, HF, Cadence, Distanz, Speed) sowie konsistente `lap`- und `session`-Summen. Der HF-Verlauf folgt einer Aufwärm-/Auslauf-Kurve mit Jitter und bleibt garantiert innerhalb min/max.
+
+Erzeugte Dateien können direkt über garminconnect.com ("Activity Import") oder Garmin Express hochgeladen werden.
