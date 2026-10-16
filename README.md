@@ -4,6 +4,15 @@ Erzeugt realistische FIT-Aktivitätsdateien (Garmin-kompatibel), z. B. um Softwa
 
 ## Installation
 
+Einmalig Umgebung einrichten (legt `.venv` an und installiert alles):
+
+```bash
+./setup.sh
+source .venv/bin/activate
+```
+
+Alternativ minimal per pip:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -70,3 +79,11 @@ GARMIN_EMAIL=... GARMIN_PASSWORD=... python upload_to_garmin.py out/
 ```
 
 Details siehe `upload_to_garmin.py --help` (u. a. Token-basierte Anmeldung für wiederholte Uploads).
+
+Alternativ per Makefile:
+
+```bash
+make setup
+generate:  # venv muss aktiv sein
+make upload  # GARMIN_EMAIL/GARMIN_PASSWORD als env setzen
+```
