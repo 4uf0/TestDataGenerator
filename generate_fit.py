@@ -15,6 +15,8 @@ from datetime import datetime, timedelta, timezone
 
 from fit_tool.fit_file import FitFile
 from fit_tool.fit_file_builder import FitFileBuilder
+from fit_tool.profile.messages.activity_message import ActivityMessage
+from fit_tool.profile.messages.device_info_message import DeviceInfoMessage
 from fit_tool.profile.messages.event_message import EventMessage
 from fit_tool.profile.messages.file_id_message import FileIdMessage
 from fit_tool.profile.messages.lap_message import LapMessage
@@ -115,6 +117,16 @@ def build_activity(
     file_id.time_created = start_ts
     builder.add(file_id)
 
+    device_info = DeviceInfoMessage()
+    device_info.timestamp = start_ts
+    device_info.device_type = 4  # running_watch
+    device_info.manufacturer = 1  # Garmin
+    device_info.product = 3431  # Forerunner 965
+    device_info.serial_number = file_id.serial_number
+    device_info.software_version = 26.0
+    device_info.battery_voltage = 4.1
+    builder.add(device_info)
+
     start_event = EventMessage()
     start_event.event = Event.TIMER
     start_event.event_type = EventType.START
@@ -161,6 +173,7 @@ def build_activity(
     elapsed_s = num_records * record_interval_s
 
     lap = LapMessage()
+    lap.message_index = 0
     lap.timestamp = end_ts
     lap.start_time = start_ts
     lap.total_elapsed_time = float(elapsed_s)
@@ -169,7 +182,9 @@ def build_activity(
     builder.add(lap)
 
     session = SessionMessage()
+    session.message_index = 0
     session.sport = sport
+    session.sub_sport = 0  # generic
     session.start_time = start_ts
     session.timestamp = end_ts
     session.total_elapsed_time = float(elapsed_s)
@@ -179,6 +194,14 @@ def build_activity(
     session.max_heart_rate = int(max_hr)
     session.total_calories = int(round(duration_min * (6.0 if sport_name == "running" else 8.5)))
     builder.add(session)
+
+    activity = ActivityMessage()
+    activity.timestamp = end_ts
+    activity.type = FileType.ACTIVITY
+    activity.event = Event.TIMER
+    activity.event_type = EventType.STOP
+    activity.num_sessions = 1
+    builder.add(activity)
     return builder.build()
 
 
