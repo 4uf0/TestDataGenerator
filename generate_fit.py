@@ -36,21 +36,21 @@ SPORT_PRESETS = {
         "speed_kmh": (9.5, 12.5),
         "cadence": (150, 182),
         "hr": (115, 165),
-        "position": (48.137154, 11.576124),
+        "position": (48.531839, 11.527053),  # Landshut
     },
     "cycling": {
         "sport": Sport.CYCLING,
         "speed_kmh": (22.0, 30.0),
         "cadence": (70, 95),
         "hr": (110, 158),
-        "position": (48.137154, 11.576124),
+        "position": (48.531839, 11.527053),  # Landshut
     },
     "hiking": {
         "sport": Sport.HIKING,
         "speed_kmh": (3.8, 5.2),
         "cadence": (55, 75),
         "hr": (95, 135),
-        "position": (47.422680, 10.985100),
+        "position": (48.531839, 11.527053),  # Landshut
     },
 }
 
