@@ -10,6 +10,7 @@ Beispiele:
 import argparse
 import math
 import random
+import sys
 from datetime import datetime, timedelta, timezone
 
 from fit_tool.fit_file import FitFile
@@ -108,6 +109,9 @@ def build_activity(
     builder = FitFileBuilder(auto_define=True)
     file_id = FileIdMessage()
     file_id.type = FileType.ACTIVITY
+    file_id.manufacturer = 1  # Garmin
+    file_id.product = 3431  # Forerunner 965
+    file_id.serial_number = 3479123456 + (seed % 10000)
     file_id.time_created = start_ts
     builder.add(file_id)
 
@@ -222,6 +226,19 @@ def main() -> None:
         start_dt = datetime.fromisoformat(args.start).replace(tzinfo=None).astimezone()
     else:
         start_dt = datetime.now().replace(microsecond=0) - timedelta(days=1)
+
+    if start_dt.date() > datetime.now().date():
+        raise SystemExit(
+            f"Fehler: Startdatum {start_dt.date()} liegt in der Zukunft. "
+            "Garmin lehnt zukünftige Aktivitäten beim Import oft still ab. "
+            "Bitte ein vergangenes Datum setzen oder --start weglassen."
+        )
+    if start_dt.date() < datetime.now().date() - timedelta(days=365):
+        print(
+            f"Warnung: Startdatum {start_dt.date()} liegt über einem Jahr zurück; "
+            "Garmin zeigt solche Aktivitäten evtl. nicht im Standard-Kalender.",
+            file=sys.stderr,
+        )
 
     import os
 
