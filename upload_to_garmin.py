@@ -75,11 +75,6 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--password", help="Garmin Passwort (alternativ GARMIN_PASSWORD)")
     p.add_argument("--save-tokens", metavar="FILE", help="OAuth-Tokens nach Login in Datei speichern")
     p.add_argument("--use-tokens", metavar="FILE", help="Anmeldung mit gespeicherten OAuth-Tokens")
-    p.add_argument(
-        "--delete-after-upload",
-        action="store_true",
-        help="Erfolgreich hochgeladene Dateien nach dem Upload löschen",
-    )
     return p.parse_args()
 
 
@@ -102,7 +97,7 @@ def main() -> None:
             print(f"FEHLER bei {f.name}: {exc}", file=sys.stderr)
             failed.append(f.name)
     print(f"\nfertig: {ok} erfolgreich, {len(failed)} fehlgeschlagen")
-    if args.delete_after_upload and ok:
+    if ok:
         print(f"{ok} hochgeladene Datei(en) lokal gelöscht; nur fehlgeschlagene bleiben übrig")
     if failed:
         print("fehlgeschlagen:", ", ".join(failed), file=sys.stderr)
