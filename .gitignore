@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+out/
+garmin_tokens*.json
+*.fit
+.venv/
