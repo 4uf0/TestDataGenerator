@@ -89,9 +89,8 @@ def main() -> None:
             response = client.upload_activity(str(f))
             status = response.get("upload", {}).get("status", {}).get("status", "OK") if isinstance(response, dict) else "OK"
             print(f"hochgeladen: {f.name} ({status})")
-            if args.delete_after_upload:
-                f.unlink()
-                print(f"  gelöscht: {f.name}")
+            f.unlink()
+            print(f"  gelöscht: {f.name}")
             ok += 1
         except Exception as exc:
             print(f"FEHLER bei {f.name}: {exc}", file=sys.stderr)
