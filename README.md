@@ -74,6 +74,21 @@ python generate_fit.py --seed 42
 | `--outdir` | `./out` | Ausgabeverzeichnis |
 | `--seed` | zufällig | Seed für reproduzierbare Daten |
 
+## Web-UI mit Kalender (empfohlen)
+
+`app.py` startet eine lokale Web-UI mit Monatskalender – Aktivitäten pro Tag eintragen,
+FIT-Dateien per Klick erzeugen und hochladen. Alle Einträge liegen in SQLite (`activities.db`):
+
+```bash
+python app.py
+# dann http://127.0.0.1:5000 im Browser öffnen
+```
+
+- **Kalender:** Tag anklicken = Datum im Formular; Eintrag anklicken = löschen
+- **Formular:** Datum, Uhrzeit, Sport, Dauer; Puls/Cadence min/max/Jitter (leer = Sport-Default), Seed optional
+- **„FIT-Dateien erzeugen“:** erzeugt für alle DB-Einträge ohne Datei die FIT-Datei in `out/`
+- **„Zu Garmin hochladen“:** lädt `out/` hoch (nutzt `garmin_tokens.json`, falls vorhanden; hochgeladene Dateien werden gelöscht)
+
 ## Bestehende Aktivität klonen (neues Datum)
 
 `clone_fit.py` liest eine FIT-Datei, verschiebt alle Zeitstempel auf ein neues Datum und speichert sie als Klon – z. B. um täglich dieselbe Testaktivität in Garmin Connect zu haben:
