@@ -4,3 +4,4 @@ out/
 garmin_tokens*.json
 *.fit
 .venv/
+activities.db
