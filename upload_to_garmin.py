@@ -9,11 +9,12 @@ Beispiele:
     GARMIN_EMAIL=... GARMIN_PASSWORD=... python upload_to_garmin.py out/
     python upload_to_garmin.py --save-tokens garmin_tokens.json out/       # 1. Login
     python upload_to_garmin.py --use-tokens garmin_tokens.json out/       # Folgelogins
+
+Erfolgreich hochgeladene Dateien werden automatisch lokal gelöscht.
 """
 
 import argparse
 import getpass
-import json
 import os
 import sys
 from pathlib import Path
@@ -26,9 +27,8 @@ def load_client(args: argparse.Namespace) -> Garmin:
         token_path = Path(args.use_tokens)
         if not token_path.exists():
             raise SystemExit(f"Token-Datei nicht gefunden: {token_path}")
-        tokens = json.loads(token_path.read_text())
         client = Garmin()
-        client.login(tokens["oauth1"], tokens["oauth2"])
+        client.login(tokenstore=str(token_path))
         print("angemeldet (Tokens)")
         return client
 
@@ -43,14 +43,9 @@ def load_client(args: argparse.Namespace) -> Garmin:
         return input("MFA-Code (aus Authenticator-App/E-Mail): ")
 
     client = Garmin(email, password, prompt_mfa=prompt_mfa)
-    client.login()
-    if args.save_tokens:
-        oauth1 = client.oauth1
-        oauth2 = client.oauth2
-        Path(args.save_tokens).write_text(
-            json.dumps({"oauth1": oauth1, "oauth2": oauth2})
-        )
-        print(f"Tokens gespeichert: {args.save_tokens}")
+    token_path = args.save_tokens or "garmin_tokens.json"
+    client.login(tokenstore=str(Path(token_path)))
+    print(f"Tokens gespeichert: {token_path}")
     print("angemeldet")
     return client
 
@@ -73,7 +68,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("path", help=".fit-Datei oder Verzeichnis mit .fit-Dateien")
     p.add_argument("--email", help="Garmin E-Mail (alternativ GARMIN_EMAIL)")
     p.add_argument("--password", help="Garmin Passwort (alternativ GARMIN_PASSWORD)")
-    p.add_argument("--save-tokens", metavar="FILE", help="OAuth-Tokens nach Login in Datei speichern")
+    p.add_argument("--save-tokens", metavar="FILE", default="garmin_tokens.json", help="OAuth-Tokens nach Login in Datei speichern (Default: garmin_tokens.json)")
     p.add_argument("--use-tokens", metavar="FILE", help="Anmeldung mit gespeicherten OAuth-Tokens")
     return p.parse_args()
 
