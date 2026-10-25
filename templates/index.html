@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>TestDataGenerator – Kalender</title>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+<style>
+  :root { font-family: system-ui, sans-serif; }
+  body { display: flex; gap: 1rem; margin: 0; padding: 1rem; background: #f5f6fa; }
+  #calendar { flex: 1; background: #fff; border-radius: 8px; padding: 1rem; min-width: 0; }
+  #sidebar { width: 320px; display: flex; flex-direction: column; gap: 1rem; }
+  .card { background: #fff; border-radius: 8px; padding: 1rem; }
+  .card h3 { margin-top: 0; }
+  label { display: block; margin: 0.4rem 0 0.15rem; font-size: 0.85rem; color: #555; }
+  input, select { width: 100%; box-sizing: border-box; padding: 0.35rem; border: 1px solid #ccc; border-radius: 4px; }
+  button { margin-top: 0.75rem; width: 100%; padding: 0.5rem; border: 0; border-radius: 4px; background: #2c6fbb; color: #fff; cursor: pointer; }
+  button.secondary { background: #6b7280; }
+  .hint { font-size: 0.75rem; color: #888; }
+  #status { margin-top: 0.5rem; font-size: 0.85rem; white-space: pre-wrap; }
+  .ok { color: #166534; } .err { color: #b91c1c; }
+</style>
+</head>
+<body>
+
+<div id="calendar"></div>
+
+<div id="sidebar">
+  <div class="card">
+    <h3>Aktivität eintragen</h3>
+    <form id="form">
+      <label>Datum</label><input type="date" id="date" required>
+      <label>Uhrzeit</label><input type="time" id="time" value="18:00" required>
+      <label>Sport</label>
+      <select id="sport">
+        <option value="running">Laufen</option>
+        <option value="cycling">Radfahren</option>
+        <option value="hiking">Wandern</option>
+      </select>
+      <label>Dauer (Minuten)</label><input type="number" id="duration" value="40" min="1" step="1">
+      <details>
+        <summary>Puls / Cadence</summary>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+          <div><label>HF min</label><input type="number" id="hr_min" placeholder="auto"></div>
+          <div><label>HF max</label><input type="number" id="hr_max" placeholder="auto"></div>
+          <div><label>HF-Jitter</label><input type="number" id="hr_jitter" value="3" step="0.5"></div>
+          <div></div>
+          <div><label>Cad min</label><input type="number" id="cad_min" placeholder="auto"></div>
+          <div><label>Cad max</label><input type="number" id="cad_max" placeholder="auto"></div>
+          <div><label>Cad-Jitter</label><input type="number" id="cad_jitter" value="2.5" step="0.5"></div>
+          <div></div>
+        </div>
+      </details>
+      <label>Seed (optional, für reproduzierbare Daten)</label><input type="number" id="seed" placeholder="zufällig">
+      <button type="submit">Eintragen</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Erzeugen &amp; Hochladen</h3>
+    <button id="generate">FIT-Dateien erzeugen</button>
+    <button class="secondary" id="upload">Zu Garmin hochladen</button>
+    <div id="status" class="hint"></div>
+    <p class="hint">
+      Erzeugte Dateien liegen in <code>out/</code>, hochgeladene werden danach gelöscht.
+      Für Upload: <code>garmin_tokens.json</code> muss vorhanden sein (einmalig
+      <code>--save-tokens</code>) bzw. GARMIN_EMAIL/GARMIN_PASSWORD gesetzt.
+    </p>
+  </div>
+</div>
+
+<script>
+const cal = new FullCalendar.Calendar(document.getElementById('calendar'), {
+  initialView: 'dayGridMonth',
+  locale: 'de',
+  height: 'auto',
+  headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+  events: '/api/activities',
+  eventClick: async (info) => {
+    if (confirm('Aktivität "' + info.event.title + '" am ' + info.event.startStr.slice(0,10) + ' löschen?')) {
+      await fetch('/api/activities/' + info.event.id, {method: 'DELETE'});
+      info.event.remove();
+    }
+  },
+  dateClick: (info) => {
+    document.getElementById('date').value = info.dateStr;
+  }
+});
+cal.render();
+
+document.getElementById('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = {
+    date: document.getElementById('date').value,
+    time: document.getElementById('time').value,
+    sport: document.getElementById('sport').value,
+    duration_min: parseFloat(document.getElementById('duration').value),
+    hr_min: document.getElementById('hr_min').value || null,
+    hr_max: document.getElementById('hr_max').value || null,
+    hr_jitter: document.getElementById('hr_jitter').value || null,
+    cad_min: document.getElementById('cad_min').value || null,
+    cad_max: document.getElementById('cad_max').value || null,
+    cad_jitter: document.getElementById('cad_jitter').value || null,
+    seed: document.getElementById('seed').value || null
+  };
+  const res = await fetch('/api/activities', {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+  });
+  if (res.ok) { cal.refetchEvents(); } else {
+    alert('Fehler: ' + (await res.json()).error);
+  }
+});
+
+document.getElementById('generate').addEventListener('click', async () => {
+  const res = await fetch('/api/generate', {method: 'POST'});
+  const data = await res.json();
+  const el = document.getElementById('status');
+  el.className = data.errors.length ? 'err' : 'ok';
+  el.textContent = data.generated.length + ' Datei(en) erzeugt' +
+    (data.errors.length ? '\nFehler:\n' + data.errors.join('\n') : '');
+  cal.refetchEvents();
+});
+
+document.getElementById('upload').addEventListener('click', async () => {
+  const res = await fetch('/api/upload', {method: 'POST'});
+  const data = await res.json();
+  const el = document.getElementById('status');
+  el.className = data.failed?.length ? 'err' : 'ok';
+  el.textContent = 'Hochgeladen: ' + (data.uploaded ?? 0) +
+    (data.failed?.length ? '\nFehlgeschlagen: ' + data.failed.join(', ') : '');
+});
+</script>
+</body>
+</html>
